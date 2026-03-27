@@ -1,0 +1,49 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/refs/heads/dev/crates/tauri-config-schema/schema.json",
+  "productName": "MyKAI Node",
+  "version": "0.1.0",
+  "identifier": "com.mykai.node",
+  "build": {
+    "frontendDist": "../src",
+    "devUrl": "http://localhost:1420"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "MyKAI Node",
+        "width": 480,
+        "height": 640,
+        "resizable": true,
+        "minWidth": 420,
+        "minHeight": 560,
+        "center": true,
+        "decorations": true,
+        "transparent": false
+      }
+    ],
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": false,
+      "tooltip": "MyKAI Node"
+    },
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyKAI Node</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 32 32" width="28" height="28">
+          <circle cx="16" cy="16" r="14" fill="none" stroke="#49EACB" stroke-width="2"/>
+          <circle cx="16" cy="16" r="6" fill="#49EACB"/>
+          <line x1="16" y1="2" x2="16" y2="8" stroke="#49EACB" stroke-width="2"/>
+          <line x1="16" y1="24" x2="16" y2="30" stroke="#49EACB" stroke-width="2"/>
+          <line x1="2" y1="16" x2="8" y2="16" stroke="#49EACB" stroke-width="2"/>
+          <line x1="24" y1="16" x2="30" y2="16" stroke="#49EACB" stroke-width="2"/>
+        </svg>
+        <span class="logo-text">MyKAI Node</span>
+      </div>
+      <button id="settings-btn" class="icon-btn" title="Settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Setup Screen (shown on first run) -->
+    <div id="setup-screen" class="screen" style="display: none;">
+      <div class="setup-content">
+        <div class="setup-icon">
+          <svg viewBox="0 0 64 64" width="80" height="80">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="#49EACB" stroke-width="2" opacity="0.3"/>
+            <circle cx="32" cy="32" r="18" fill="none" stroke="#49EACB" stroke-width="2" opacity="0.6"/>
+            <circle cx="32" cy="32" r="8" fill="#49EACB"/>
+          </svg>
+        </div>
+        <h2>Welcome to MyKAI Node</h2>
+        <p class="setup-desc">Run your own Kaspa node with one click. No technical knowledge needed.</p>
+        <div class="setup-requirements">
+          <h3>Your computer needs:</h3>
+          <div class="req-item"><span class="req-icon">&#9679;</span> 8 GB RAM (minimum)</div>
+          <div class="req-item"><span class="req-icon">&#9679;</span> 50 GB free disk space</div>
+          <div class="req-item"><span class="req-icon">&#9679;</span> Internet connection</div>
+        </div>
+        <button id="install-btn" class="primary-btn">
+          <span class="btn-text">Install & Start Node</span>
+          <span class="btn-spinner" style="display:none;"></span>
+        </button>
+        <p id="install-status" class="status-text"></p>
+      </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-screen" class="screen" style="display: none;">
+      <!-- Status Hero -->
+      <div id="status-card" class="status-card status-offline">
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span id="status-label" class="status-label">Offline</span>
+        </div>
+        <div id="status-detail" class="status-detail">Node is not running</div>
+      </div>
+
+      <!-- Sync Progress (shown during sync) -->
+      <div id="sync-section" class="card" style="display: none;">
+        <div class="card-header">Sync Progress</div>
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+        </div>
+        <div class="progress-info">
+          <span id="sync-percent">0%</span>
+          <span id="sync-blocks" class="muted">0 blocks</span>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Block Height</div>
+          <div id="stat-blocks" class="stat-value">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">DAA Score</div>
+          <div id="stat-daa" class="stat-value">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Peers</div>
+          <div id="stat-peers" class="stat-value">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Version</div>
+          <div id="stat-version" class="stat-value">--</div>
+        </div>
+      </div>
+
+      <!-- Control Button -->
+      <div class="control-section">
+        <button id="toggle-btn" class="toggle-btn stopped">
+          <svg id="play-icon" viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+          <svg id="stop-icon" viewBox="0 0 24 24" width="28" height="28" fill="currentColor" style="display:none;">
+            <rect x="4" y="4" width="16" height="16" rx="2"/>
+          </svg>
+          <span id="toggle-label">Start Node</span>
+        </button>
+      </div>
+
+      <!-- Network Info -->
+      <div id="network-card" class="card" style="display: none;">
+        <div class="card-header">Network</div>
+        <div class="network-info">
+          <div class="info-row">
+            <span class="info-label">Mode</span>
+            <span class="info-value badge-private">Private</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Network</span>
+            <span id="info-network" class="info-value">--</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">UTXO Index</span>
+            <span id="info-utxo" class="info-value">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Panel (overlay) -->
+    <div id="settings-panel" class="settings-panel" style="display: none;">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button id="settings-close" class="icon-btn">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="settings-content">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Auto-start node</div>
+            <div class="setting-desc">Start kaspad when the app opens</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-autostart-node" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Launch on startup</div>
+            <div class="setting-desc">Open MyKAI Node when you log in to Windows</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-autostart-boot" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-divider"></div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Check for updates</div>
+            <div class="setting-desc">See if a newer kaspad version is available</div>
+          </div>
+          <button id="check-update-btn" class="secondary-btn">Check</button>
+        </div>
+        <p id="update-status" class="status-text"></p>
+        <div class="setting-divider"></div>
+        <div class="setting-footer">
+          <p class="version-text" id="app-version">MyKAI Node v0.1.0</p>
+          <p class="version-text muted" id="kaspad-version">kaspad: --</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

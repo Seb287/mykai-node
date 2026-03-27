@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Rust build
+src-tauri/target/
+
+# Generated icons (built by CI)
+src-tauri/icons/*.png
+src-tauri/icons/*.ico
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

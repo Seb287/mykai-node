@@ -1,0 +1,16 @@
+{
+  "name": "mykai-node",
+  "version": "0.1.0",
+  "description": "MyKAI Node - One-click Kaspa node for everyone",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2"
+  }
+}
