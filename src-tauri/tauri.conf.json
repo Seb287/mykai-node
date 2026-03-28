@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/refs/heads/dev/crates/tauri-config-schema/schema.json",
   "productName": "MyKAI Node",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "identifier": "com.mykai.node",
   "build": {
     "frontendDist": "../src",
@@ -27,7 +27,7 @@
       "tooltip": "MyKAI Node"
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ws://127.0.0.1:18110"
     }
   },
   "bundle": {

@@ -75,9 +75,9 @@ async function init() {
       if (configResult.data.installed_version) {
         els.kaspadVersion.textContent = `kaspad: v${configResult.data.installed_version}`;
       }
-      // KasMap settings
+      // KasMap settings (H-2: uses has_kasmap_token boolean, never receives actual token)
       els.kasmapEnabled.checked = configResult.data.kasmap_enabled || false;
-      if (configResult.data.kasmap_token) {
+      if (configResult.data.has_kasmap_token) {
         els.kasmapTokenInput.value = "••••••••••••••••";
         els.kasmapTokenInput.dataset.hasToken = "true";
       }

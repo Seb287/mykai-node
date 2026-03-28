@@ -15,6 +15,16 @@ pub struct AppState {
     pub heartbeat: Arc<HeartbeatManager>,
 }
 
+/// Sanitized config returned to the frontend (H-2: no secrets).
+#[derive(Serialize)]
+pub struct SafeConfig {
+    pub auto_start_node: bool,
+    pub auto_start_on_boot: bool,
+    pub installed_version: Option<String>,
+    pub kasmap_enabled: bool,
+    pub has_kasmap_token: bool,
+}
+
 /// Response wrapper for all commands.
 #[derive(Serialize)]
 pub struct CommandResult<T: Serialize> {
@@ -120,11 +130,17 @@ pub async fn check_update(
     }
 }
 
-/// Get the current app configuration.
+/// Get the current app configuration (sanitized — no secrets).
 #[tauri::command]
-pub async fn get_config(state: tauri::State<'_, AppState>) -> Result<CommandResult<AppConfig>, ()> {
+pub async fn get_config(state: tauri::State<'_, AppState>) -> Result<CommandResult<SafeConfig>, ()> {
     let config = state.config.lock().await;
-    Ok(CommandResult::ok(config.clone()))
+    Ok(CommandResult::ok(SafeConfig {
+        auto_start_node: config.auto_start_node,
+        auto_start_on_boot: config.auto_start_on_boot,
+        installed_version: config.installed_version.clone(),
+        kasmap_enabled: config.kasmap_enabled,
+        has_kasmap_token: config.kasmap_token.is_some(),
+    }))
 }
 
 /// Update a configuration setting.

@@ -39,6 +39,10 @@ fn default_next_ping() -> u64 {
     1800
 }
 
+// H-6: Sane bounds for server-controlled heartbeat interval
+const MIN_HEARTBEAT_SECS: u64 = 60;    // Never faster than 1 minute
+const MAX_HEARTBEAT_SECS: u64 = 7200;  // Never slower than 2 hours
+
 /// Manages the background heartbeat loop that reports node status to kasmap.org.
 pub struct HeartbeatManager {
     config: Arc<Mutex<AppConfig>>,
@@ -92,24 +96,33 @@ impl HeartbeatManager {
                 }
 
                 if let Some(ref token) = token {
-                    match Self::send_heartbeat(&client, &rpc, token).await {
-                        Ok(response) => {
-                            if response.ok {
-                                debug!(
-                                    "Heartbeat sent successfully, next ping in {}s",
-                                    response.next_ping_seconds
-                                );
-                                interval_secs = response.next_ping_seconds;
-                            } else {
-                                warn!(
-                                    "Heartbeat rejected: {}",
-                                    response.error.unwrap_or_default()
-                                );
+                    // M-8: Only send heartbeat if node is reachable
+                    let node_reachable = rpc.ping().await;
+                    if !node_reachable {
+                        debug!("Node not reachable, skipping heartbeat");
+                    } else {
+                        match Self::send_heartbeat(&client, &rpc, token).await {
+                            Ok(response) => {
+                                if response.ok {
+                                    // H-6: Clamp server-provided interval to sane bounds
+                                    interval_secs = response
+                                        .next_ping_seconds
+                                        .max(MIN_HEARTBEAT_SECS)
+                                        .min(MAX_HEARTBEAT_SECS);
+                                    debug!(
+                                        "Heartbeat sent successfully, next ping in {}s",
+                                        interval_secs
+                                    );
+                                } else {
+                                    warn!(
+                                        "Heartbeat rejected: {}",
+                                        response.error.unwrap_or_default()
+                                    );
+                                }
                             }
-                        }
-                        Err(e) => {
-                            warn!("Heartbeat failed: {}", e);
-                            // On error, keep retrying with a longer interval
+                            Err(e) => {
+                                warn!("Heartbeat failed: {}", e);
+                            }
                         }
                     }
                 }
@@ -157,9 +170,9 @@ impl HeartbeatManager {
                         status.network.clone(),
                     )
                 }
-                Err(_) => {
-                    // Node not reachable — still send heartbeat so kasmap knows we're alive
-                    ("offline".to_string(), 0.0, 0, 0, String::new(), "mainnet".to_string())
+                Err(e) => {
+                    // M-8: This shouldn't happen since we ping first, but handle gracefully
+                    return Err(format!("Node RPC unreachable: {}", e));
                 }
             };
 
@@ -192,7 +205,10 @@ impl HeartbeatManager {
             .map_err(|e| format!("HTTP request failed: {}", e))?;
 
         if !resp.status().is_success() {
-            return Err(format!("HTTP {}: {}", resp.status(), resp.text().await.unwrap_or_default()));
+            // M-7: Don't log response body — it could echo the token
+            let status = resp.status();
+            let _ = resp.text().await; // Consume but discard body
+            return Err(format!("HTTP {} from heartbeat endpoint", status));
         }
 
         resp.json::<HeartbeatResponse>()

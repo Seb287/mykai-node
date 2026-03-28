@@ -22,8 +22,16 @@ pub fn set_auto_start(enabled: bool) -> Result<(), String> {
         let exe_path = std::env::current_exe()
             .map_err(|e| format!("Failed to get executable path: {}", e))?;
 
+        // M-9: Use .to_str() for Unicode safety instead of .to_string_lossy()
+        let exe_str = exe_path
+            .to_str()
+            .ok_or_else(|| "Executable path contains invalid Unicode characters".to_string())?;
+
+        // M-9: Quote the path to handle spaces (e.g. "C:\Users\John Smith\...")
+        let quoted = format!("\"{}\"", exe_str);
+
         run_key
-            .set_value(app_name, &exe_path.to_string_lossy().to_string())
+            .set_value(app_name, &quoted)
             .map_err(|e| format!("Failed to set registry value: {}", e))?;
 
         tracing::info!("Auto-start enabled: {}", exe_path.display());
@@ -39,6 +47,9 @@ pub fn set_auto_start(enabled: bool) -> Result<(), String> {
 /// No-op on non-Windows platforms.
 #[cfg(not(windows))]
 pub fn set_auto_start(enabled: bool) -> Result<(), String> {
-    tracing::warn!("Auto-start is only supported on Windows");
-    Ok(())
+    if enabled {
+        Err("Auto-start is only supported on Windows. Use systemd or launchd on your platform.".to_string())
+    } else {
+        Ok(())
+    }
 }
