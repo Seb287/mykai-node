@@ -1,6 +1,7 @@
 use crate::config::AppConfig;
+use crate::heartbeat::HeartbeatManager;
 use crate::kaspad_manager::KaspadManager;
-use crate::rpc_client::NodeStatus;
+use crate::rpc_client::{NodeStatus, RpcClient};
 use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -11,6 +12,7 @@ pub struct AppState {
     pub config: Arc<Mutex<AppConfig>>,
     pub manager: Arc<KaspadManager>,
     pub rpc: Arc<RpcClient>,
+    pub heartbeat: Arc<HeartbeatManager>,
 }
 
 /// Response wrapper for all commands.
@@ -158,5 +160,62 @@ pub async fn set_auto_start_node(
     let mut config = state.config.lock().await;
     config.auto_start_node = enabled;
     config.save();
+    Ok(CommandResult::ok(()))
+}
+
+// ── KasMap Integration Commands ────────────────────────────────────
+
+/// Set the KasMap node token and persist it.
+#[tauri::command]
+pub async fn set_kasmap_token(
+    state: tauri::State<'_, AppState>,
+    token: String,
+) -> Result<CommandResult<()>, ()> {
+    info!("KasMap token updated");
+    let mut config = state.config.lock().await;
+
+    if token.is_empty() {
+        config.kasmap_token = None;
+        config.kasmap_enabled = false;
+    } else {
+        config.kasmap_token = Some(token);
+    }
+
+    config.save();
+    drop(config);
+
+    // Restart heartbeat if it was enabled
+    let cfg = state.config.lock().await;
+    if cfg.kasmap_enabled && cfg.kasmap_token.is_some() {
+        drop(cfg);
+        state.heartbeat.start().await;
+    } else {
+        drop(cfg);
+        state.heartbeat.stop().await;
+    }
+
+    Ok(CommandResult::ok(()))
+}
+
+/// Enable or disable KasMap reporting.
+#[tauri::command]
+pub async fn set_kasmap_enabled(
+    state: tauri::State<'_, AppState>,
+    enabled: bool,
+) -> Result<CommandResult<()>, ()> {
+    info!("KasMap reporting: {}", if enabled { "enabled" } else { "disabled" });
+    let mut config = state.config.lock().await;
+    config.kasmap_enabled = enabled;
+    config.save();
+
+    let has_token = config.kasmap_token.is_some();
+    drop(config);
+
+    if enabled && has_token {
+        state.heartbeat.start().await;
+    } else {
+        state.heartbeat.stop().await;
+    }
+
     Ok(CommandResult::ok(()))
 }

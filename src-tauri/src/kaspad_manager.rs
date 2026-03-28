@@ -199,7 +199,7 @@ impl KaspadManager {
 
         info!("Starting kaspad (private mode)...");
 
-        let child = Command::new(&kaspad_path)
+        let mut child = Command::new(&kaspad_path)
             .arg("--utxoindex")
             .arg("--maxinpeers=0")
             .arg(format!("--outpeers={}", outbound_peers))

@@ -162,6 +162,34 @@
           </label>
         </div>
         <div class="setting-divider"></div>
+
+        <!-- KasMap Integration -->
+        <div class="setting-section-header">KasMap Integration</div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Show on KasMap</div>
+            <div class="setting-desc">Report your node status to kasmap.org</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-kasmap-enabled" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div id="kasmap-token-section">
+          <div class="setting-item">
+            <div class="setting-info" style="flex:1;">
+              <div class="setting-label">Node Token</div>
+              <div class="setting-desc">Get your token from your <a href="https://kasmap.org" target="_blank" style="color:#49EACB;">kasmap.org</a> account</div>
+              <div class="token-input-row">
+                <input type="password" id="kasmap-token-input" class="token-input" placeholder="km_nd_..." spellcheck="false" autocomplete="off" />
+                <button id="kasmap-token-save" class="secondary-btn">Save</button>
+              </div>
+              <p id="kasmap-status" class="status-text"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-divider"></div>
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-label">Check for updates</div>

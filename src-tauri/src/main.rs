@@ -4,11 +4,13 @@
 mod autostart;
 mod commands;
 mod config;
+mod heartbeat;
 mod kaspad_manager;
 mod rpc_client;
 
 use commands::AppState;
 use config::AppConfig;
+use heartbeat::HeartbeatManager;
 use kaspad_manager::KaspadManager;
 use rpc_client::RpcClient;
 use std::sync::Arc;
@@ -44,14 +46,16 @@ fn main() {
     config.ensure_dirs();
     let config = Arc::new(Mutex::new(config));
 
-    // Create the kaspad manager and RPC client
+    // Create the kaspad manager, RPC client, and heartbeat manager
     let manager = Arc::new(KaspadManager::new(config.clone()));
     let rpc = Arc::new(RpcClient::new("ws://127.0.0.1:18110"));
+    let heartbeat = Arc::new(HeartbeatManager::new(config.clone(), rpc.clone()));
 
     let state = AppState {
         config: config.clone(),
         manager: manager.clone(),
         rpc: rpc.clone(),
+        heartbeat: heartbeat.clone(),
     };
 
     tauri::Builder::default()
@@ -101,16 +105,26 @@ fn main() {
             // ── Auto-start Node ─────────────────────────────────────
             let config_clone = config.clone();
             let manager_for_autostart = app.state::<AppState>().manager.clone();
+            let heartbeat_for_autostart = app.state::<AppState>().heartbeat.clone();
             tauri::async_runtime::spawn(async move {
                 let cfg = config_clone.lock().await;
-                if cfg.auto_start_node {
-                    drop(cfg);
+                let auto_start = cfg.auto_start_node;
+                let kasmap_enabled = cfg.kasmap_enabled;
+                drop(cfg);
+
+                if auto_start {
                     if manager_for_autostart.is_installed().await {
                         info!("Auto-starting kaspad...");
                         if let Err(e) = manager_for_autostart.start().await {
                             tracing::error!("Auto-start failed: {}", e);
                         }
                     }
+                }
+
+                // Start KasMap heartbeat if enabled
+                if kasmap_enabled {
+                    info!("Auto-starting KasMap heartbeat...");
+                    heartbeat_for_autostart.start().await;
                 }
             });
 
@@ -127,6 +141,8 @@ fn main() {
             commands::get_config,
             commands::set_auto_start_on_boot,
             commands::set_auto_start_node,
+            commands::set_kasmap_token,
+            commands::set_kasmap_enabled,
         ])
         .run(tauri::generate_context!())
         .expect("error while running MyKAI Node");

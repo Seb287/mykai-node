@@ -26,6 +26,13 @@ pub struct AppConfig {
 
     /// Target number of outbound peers.
     pub outbound_peers: u16,
+
+    // ── KasMap Integration ──────────────────────────────────────────
+    /// Node token for kasmap.org heartbeat reporting.
+    pub kasmap_token: Option<String>,
+
+    /// Whether KasMap reporting is enabled.
+    pub kasmap_enabled: bool,
 }
 
 impl Default for AppConfig {
@@ -39,6 +46,8 @@ impl Default for AppConfig {
             installed_version: None,
             wrpc_url: "ws://127.0.0.1:18110".into(),
             outbound_peers: 8,
+            kasmap_token: None,
+            kasmap_enabled: false,
         }
     }
 }

@@ -43,6 +43,12 @@ const els = {
   checkUpdateBtn: $("#check-update-btn"),
   updateStatus: $("#update-status"),
   kaspadVersion: $("#kaspad-version"),
+  // KasMap
+  kasmapEnabled: $("#setting-kasmap-enabled"),
+  kasmapTokenInput: $("#kasmap-token-input"),
+  kasmapTokenSave: $("#kasmap-token-save"),
+  kasmapTokenSection: $("#kasmap-token-section"),
+  kasmapStatus: $("#kasmap-status"),
 };
 
 // ── Initialization ──────────────────────────────────────────────────
@@ -69,6 +75,13 @@ async function init() {
       if (configResult.data.installed_version) {
         els.kaspadVersion.textContent = `kaspad: v${configResult.data.installed_version}`;
       }
+      // KasMap settings
+      els.kasmapEnabled.checked = configResult.data.kasmap_enabled || false;
+      if (configResult.data.kasmap_token) {
+        els.kasmapTokenInput.value = "••••••••••••••••";
+        els.kasmapTokenInput.dataset.hasToken = "true";
+      }
+      updateKasmapUI();
     }
   } catch (e) {
     console.error("Init error:", e);
@@ -117,6 +130,29 @@ function setupEventListeners() {
 
   // Check for updates
   els.checkUpdateBtn.addEventListener("click", handleCheckUpdate);
+
+  // KasMap integration
+  els.kasmapEnabled.addEventListener("change", async (e) => {
+    await invoke("set_kasmap_enabled", { enabled: e.target.checked });
+    updateKasmapUI();
+  });
+
+  els.kasmapTokenSave.addEventListener("click", handleSaveKasmapToken);
+
+  // Clear the masked placeholder when user clicks to type a new token
+  els.kasmapTokenInput.addEventListener("focus", () => {
+    if (els.kasmapTokenInput.dataset.hasToken === "true") {
+      els.kasmapTokenInput.value = "";
+      els.kasmapTokenInput.type = "text";
+    }
+  });
+
+  els.kasmapTokenInput.addEventListener("blur", () => {
+    if (els.kasmapTokenInput.value === "" && els.kasmapTokenInput.dataset.hasToken === "true") {
+      els.kasmapTokenInput.value = "••••••••••••••••";
+      els.kasmapTokenInput.type = "password";
+    }
+  });
 }
 
 // ── Install Handler ─────────────────────────────────────────────────
@@ -311,6 +347,56 @@ async function handleCheckUpdate() {
   } finally {
     els.checkUpdateBtn.disabled = false;
     els.checkUpdateBtn.textContent = "Check";
+  }
+}
+
+// ── KasMap Integration ──────────────────────────────────────────────
+
+function updateKasmapUI() {
+  const enabled = els.kasmapEnabled.checked;
+  els.kasmapTokenSection.style.opacity = enabled ? "1" : "0.4";
+  els.kasmapTokenInput.disabled = !enabled;
+  els.kasmapTokenSave.disabled = !enabled;
+}
+
+async function handleSaveKasmapToken() {
+  const token = els.kasmapTokenInput.value.trim();
+
+  // Don't save the masked placeholder
+  if (token === "••••••••••••••••" || token === "") {
+    els.kasmapStatus.textContent = "Please enter your KasMap token";
+    els.kasmapStatus.style.color = "#F85149";
+    return;
+  }
+
+  // Basic validation
+  if (!token.startsWith("km_nd_")) {
+    els.kasmapStatus.textContent = "Token should start with km_nd_";
+    els.kasmapStatus.style.color = "#F85149";
+    return;
+  }
+
+  els.kasmapTokenSave.disabled = true;
+  els.kasmapTokenSave.textContent = "Saving...";
+
+  try {
+    const result = await invoke("set_kasmap_token", { token });
+    if (result.success) {
+      els.kasmapStatus.textContent = "Token saved. Your node will appear on KasMap shortly.";
+      els.kasmapStatus.style.color = "#49EACB";
+      els.kasmapTokenInput.value = "••••••••••••••••";
+      els.kasmapTokenInput.type = "password";
+      els.kasmapTokenInput.dataset.hasToken = "true";
+    } else {
+      els.kasmapStatus.textContent = `Error: ${result.error}`;
+      els.kasmapStatus.style.color = "#F85149";
+    }
+  } catch (e) {
+    els.kasmapStatus.textContent = `Error: ${e}`;
+    els.kasmapStatus.style.color = "#F85149";
+  } finally {
+    els.kasmapTokenSave.disabled = false;
+    els.kasmapTokenSave.textContent = "Save";
   }
 }
 

@@ -560,6 +560,44 @@ body {
   background: var(--accent);
 }
 
+/* ── KasMap Integration ──────────────────────────────────────────────── */
+
+.setting-section-header {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 0 4px;
+}
+
+.token-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.token-input {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.token-input:focus {
+  border-color: var(--accent);
+}
+
+.token-input::placeholder {
+  color: var(--text-muted);
+}
+
 /* ── Scrollbar ───────────────────────────────────────────────────────── */
 
 ::-webkit-scrollbar {
