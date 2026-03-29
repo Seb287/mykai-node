@@ -27,7 +27,7 @@
       "tooltip": "MyKAI Node"
     },
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ws://127.0.0.1:18110"
+      "csp": "default-src 'self' ipc: https://ipc.localhost; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ipc: https://ipc.localhost ws://127.0.0.1:18110; img-src 'self' asset: https://asset.localhost"
     }
   },
   "bundle": {
