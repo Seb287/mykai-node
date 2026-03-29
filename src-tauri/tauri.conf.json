@@ -5,7 +5,8 @@
   "identifier": "com.mykai.node",
   "build": {
     "frontendDist": "../src",
-    "devUrl": "http://localhost:1420"
+    "devUrl": "http://localhost:1420",
+    "withGlobalTauri": true
   },
   "app": {
     "windows": [
